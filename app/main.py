@@ -1,12 +1,16 @@
 import io, os, time
 from contextlib import asynccontextmanager
 
+<<<<<<< HEAD
 import numpy as np
+=======
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439
 import torch, torch.nn as nn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
 from transformers import ViTConfig, ViTForImageClassification, ViTImageProcessor
 
+<<<<<<< HEAD
 from monitoring.data_drift    import DataDriftMonitor
 from monitoring.model_monitor import ModelPerformanceMonitor
 from monitoring.infra_monitor import InfraMonitor
@@ -50,10 +54,26 @@ def extract_features(x: torch.Tensor) -> np.ndarray:
     with torch.inference_mode():
         outputs = state["model"](pixel_values=x, output_hidden_states=True)
     return outputs.hidden_states[-1][:, 0, :].cpu().numpy()[0]
+=======
+MODEL_DIR = os.getenv("MODEL_DIR", "model")
+state = {}
+
+
+def load_model():
+    config = ViTConfig.from_pretrained(MODEL_DIR)
+    model  = ViTForImageClassification(config)
+    model  = torch.ao.quantization.quantize_dynamic(
+        model, {nn.Linear}, dtype=torch.qint8)
+    sd = torch.load(f"{MODEL_DIR}/model_int8.pt",
+                    map_location="cpu", weights_only=False)
+    model.load_state_dict(sd)
+    return model.eval(), ViTImageProcessor.from_pretrained(MODEL_DIR)
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+<<<<<<< HEAD
     model, processor = load_model()
     state["model"]     = model
     state["processor"] = processor
@@ -66,6 +86,9 @@ async def lifespan(app: FastAPI):
     state["infra_monitor"] = InfraMonitor(prometheus_port=8001)
     state["infra_monitor"].start()
 
+=======
+    state["model"], state["processor"] = load_model()
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439
     yield
     state.clear()
 
@@ -75,6 +98,7 @@ app = FastAPI(title="ViT QLoRA CIFAR-100 Classifier", lifespan=lifespan)
 
 @app.get("/health")
 def health():
+<<<<<<< HEAD
     return {"status": "ok", "num_classes": len(state["model"].config.id2label)}
 
 
@@ -100,21 +124,48 @@ async def predict(file: UploadFile = File(...), true_label: int | None = None):
     except Exception as e:
         state["infra_monitor"].record_request(success=False)
         raise HTTPException(status_code=500, detail=str(e))
+=======
+    return {
+        "status": "ok",
+        "num_classes": len(state["model"].config.id2label),
+    }
+
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    try:
+        image = Image.open(io.BytesIO(await file.read())).convert("RGB")
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=400, detail="Not a valid image")
+
+    t0 = time.perf_counter()
+    x  = state["processor"](image, return_tensors="pt")["pixel_values"]
+    with torch.inference_mode():
+        probs = state["model"](pixel_values=x).logits.softmax(-1)[0]
+    ms = (time.perf_counter() - t0) * 1000
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439
 
     id2label = state["model"].config.id2label
     top      = int(probs.argmax())
 
+<<<<<<< HEAD
     prediction = {
         "label":         id2label[top],
         "label_idx":     top,
         "confidence":    round(float(probs[top]), 4),
         "probabilities": probs.tolist(),
+=======
+    return {
+        "label":        id2label[top],
+        "confidence":   round(float(probs[top]), 4),
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439
         "top5": [
             {"label": id2label[i], "confidence": round(float(probs[i]), 4)}
             for i in probs.topk(5).indices.tolist()
         ],
         "inference_ms": round(ms, 1),
     }
+<<<<<<< HEAD
 
     state["perf_monitor"].log_prediction(prediction, true_label_idx=true_label)
     state["drift_monitor"].add_production_sample(image, embedding, top)
@@ -167,3 +218,5 @@ def model_metrics():
 def infra_metrics():
     snap = state["infra_monitor"].latest()
     return snap.__dict__ if snap else {}
+=======
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439

@@ -6,4 +6,7 @@ __pycache__/
 *.pyc
 .env
 artifacts/
+<<<<<<< HEAD
 data/
+=======
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439

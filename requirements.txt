@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch
 torchvision
@@ -14,3 +15,10 @@ psutil
 pynvml
 pandas
 requests
+=======
+transformers==4.46.3
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.17
+pillow
+>>>>>>> 1b36859393ba5d1a4fb81a1512f1a6f95a7a1439
