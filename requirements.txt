@@ -1,0 +1,16 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+transformers
+peft
+pillow
+fastapi
+uvicorn
+numpy
+scikit-learn
+evidently
+prometheus-client
+psutil
+pynvml
+pandas
+requests
