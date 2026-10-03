@@ -1,0 +1,8 @@
+.qlora_venv/
+*.pt
+*.bin
+*.so
+__pycache__/
+*.pyc
+.env
+artifacts/

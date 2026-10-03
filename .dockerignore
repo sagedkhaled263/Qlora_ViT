@@ -1,0 +1,5 @@
+.qlora_venv/
+artifacts/
+__pycache__/
+*.zip
+*.pyc
